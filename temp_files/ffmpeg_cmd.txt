@@ -1,0 +1,25 @@
+
+ffmpeg -ss 00:00:00 -to 00:13:38  -i raw.mov -c copy output.mov
+
+
+ffmpeg -i output.mov \
+  -vf  "select='not(between(t,40,800))’,  setpts=N/FRAME_RATE/TB" \
+  -af "aselect='not(between(t,40,800))’, asetpts=N/SR/TB" \
+  output_cut.mov
+
+
+
+ffmpeg -i output.mov -t "00:0:40" -c copy part1.mov;
+ffmpeg -i output.mov -ss "13:20" -c copy part2.mov;
+echo "file 'part1.mov'" > filelist;
+echo "file 'part2.mov'" >> filelist;
+wait;
+
+ffmpeg -f concat -i filelist -c copy output_cut.mov;
+rm filelist;
+
+
+ffmpeg -i output.mov -ss 00:00:00 -to 00:13:38 -c:v copy -c:a copy trimmed_output.mov
+
+
+ffmpeg -i output.mov -filter:v "setpts=PTS/10" output_speedup.mov
